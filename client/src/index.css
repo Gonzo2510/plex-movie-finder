@@ -27,7 +27,7 @@ body {
 }
 
 .search-form input {
-  width: 50%;
+  width: 30%;
   height: 40px;
   padding: 10px;
   font-size: 18px;
@@ -36,13 +36,13 @@ body {
 }
 
 .search-form button {
-  width: 20%;
-  height: 40px;
+  width: 15%;
+  height:62px;
   padding: 10px;
-  font-size: 18px;
+  font-size: 30px;
   border: none;
   border-radius: 5px;
-  background-color: #4CAF50;
+  background-color: #2b923c;
   color: #fff;
   cursor: pointer;
 }

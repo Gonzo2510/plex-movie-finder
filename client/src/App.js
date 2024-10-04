@@ -43,18 +43,20 @@ function App() {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <h1>Movie Finder</h1>
-        <input type="text" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Movie title..." />
-        <button type="submit">Search</button>
-      </form>
-      <ul>
+    <div className="container">
+      <div className="header">
+        <h1>Plex Movie Finder</h1>
+      </div>
+      <div className="search-form">
+        <input type="text" value={searchTerm} onChange={handleInputChange} placeholder="Movie title..." />
+        <button type="submit" onClick={handleSubmit}>Search</button>
+      </div>
+      <ul className="movie-list">
         {searchResults.map((movie, index) => (
           <li key={index}>
-            <h2>{movie.title}</h2>
-            <p>Year: {movie.year}</p>
             <img src={movie.image} alt={movie.title} />
+            <h2>{movie.title}</h2>
+            <p>{movie.year}</p>
           </li>
         ))}
       </ul>
