@@ -5,6 +5,9 @@ import { load } from 'cheerio';
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
 
   const handleInputChange = (event) => {
     setSearchTerm(event.target.value);
@@ -15,7 +18,6 @@ function App() {
     searchYts(searchTerm);
   };
 
-   
   const searchYts = async (searchTerm) => {
     const params = {
       headers: {
@@ -42,6 +44,28 @@ function App() {
     }
   };
 
+  const handleImageClick = () => {
+    setShowModal(true);
+  };
+
+  const handlePasswordChange = (event) => {
+    setPassword(event.target.value);
+  };
+
+  const handleConfirmedChange = (event) => {
+    setConfirmed(event.target.checked);
+  };
+
+  const handleSubmitPassword = (event) => {
+    event.preventDefault();
+    if (password === 'your_password_here') {
+      console.log('Success!');
+      setShowModal(false);
+    } else {
+      console.log('Incorrect password');
+    }
+  };
+
   return (
     <div className="container">
       <div className="header">
@@ -54,12 +78,24 @@ function App() {
       <ul className="movie-list">
         {searchResults.map((movie, index) => (
           <li key={index}>
-            <img src={movie.image} alt={movie.title} />
+            <img src={movie.image} alt={movie.title} onClick={handleImageClick} />
             <h2>{movie.title}</h2>
             <p>{movie.year}</p>
           </li>
         ))}
       </ul>
+      {showModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Confirm Movie Addition</h2>
+            <p>Have you confirmed that the movie is not already on Plex?</p>
+            <input type="checkbox" checked={confirmed} onChange={handleConfirmedChange} />
+            <p>Password:</p>
+            <input type="password" value={password} onChange={handlePasswordChange} />
+            <button type="submit" onClick={handleSubmitPassword}>Submit</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
