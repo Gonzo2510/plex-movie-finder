@@ -88,11 +88,13 @@ function App() {
         <div className="modal">
           <div className="modal-content">
             <h2>Confirm Movie Addition</h2>
-            <p>Have you confirmed that the movie is not already on Plex?</p>
+            <p>Movie already on Plex?</p>
             <input type="checkbox" checked={confirmed} onChange={handleConfirmedChange} />
+            <p>Yes</p>
+            <p>No</p>
             <p>Password:</p>
             <input type="password" value={password} onChange={handlePasswordChange} />
-            <button type="submit" onClick={handleSubmitPassword}>Submit</button>
+            <button type="submit" onClick={handleSubmitPassword}>Add to Plex</button>
           </div>
         </div>
       )}

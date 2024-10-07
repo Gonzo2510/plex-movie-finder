@@ -99,9 +99,9 @@ body {
 }
 
 .modal-content {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 10px;
+  background-color: #d3d3d3;
+  padding: 50px;
+  border-radius: 50px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -118,11 +118,11 @@ body {
 }
 
 .modal-content input[type="password"] {
-  width: 100%;
+  width: 80%;
   height: 40px;
   padding: 10px;
   margin-bottom: 20px;
-  border: 1px solid #ccc;
+  border: 1px solid #ffffff;
 }
 
 .modal-content button[type="submit"] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
