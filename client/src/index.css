@@ -100,13 +100,24 @@ body {
 
 .modal-content {
   background-color: #d3d3d3;
-  padding: 50px;
-  border-radius: 50px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  border-radius: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content horizontally */
+  justify-content: center; /* Center   
+  content vertically */
+  padding: 20px
+}
+
+.modal-content-inner {
+  display: flex; /* Create a flex container for the content and button */
+  align-items: center; /* Center items vertically within this container */
+  width: 100%; /* Ensure the content and button fill the width of the modal */;
 }
 
 .modal-content h2 {
   margin-top: 0;
+  padding: 10px;
 }
 
 .modal-content p {
@@ -125,4 +136,28 @@ body {
   border: 1px solid #ffffff;
 }
 
-.modal-content button[type="submit"] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+.modal-content button[type="submit"] { 
+  background-color: #4CAF50; 
+  color: white; 
+  padding: 10px 20px; 
+  border: none; 
+  border-radius: 5px; 
+  cursor: pointer; }
+
+.movie-image {
+  border: 1px solid transparent; /* Set initial border to transparent */
+  cursor: pointer;
+}
+
+.movie-image:hover {
+  border: 1px solid white; /* Add white outline on hover */
+}
+
+.close-button {
+  margin-top: -px;
+  margin-left: auto; /* Move the button to the right side */
+}
+
+.loading {
+  color: white;
+}

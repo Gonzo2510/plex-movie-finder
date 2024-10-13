@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { load } from 'cheerio';
 
@@ -6,16 +6,20 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
   const [password, setPassword] = useState('');
   const [confirmed, setConfirmed] = useState(false);
+  const [modalStep, setModalStep] = useState(1)
 
   const handleInputChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    searchYts(searchTerm);
+    setIsLoading(true);
+    await searchYts(searchTerm);
+    setIsLoading(false); 
   };
 
   const searchYts = async (searchTerm) => {
@@ -66,19 +70,69 @@ function App() {
     }
   };
 
+  const handleModalClose = () => {
+    setModalStep(1); // Reset the modal step to the initial state
+    setPassword(''); // Clear the password field
+    setConfirmed(false); // Reset the confirmed state
+    setShowModal(false);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      handleModalClose();
+    }
+  };
+
+  const handleConfirm = (isMovieOnPlex) => {
+    if (isMovieOnPlex) {
+      setModalStep(2); // Proceed to the password prompt
+    } else {
+      setModalStep(3); // Show the "Cool. Go check..." message and close the modal
+    }
+  };
+
+  useEffect(() => {
+    if (modalStep === 3) {
+      const timeout = setTimeout(() => {
+        setShowModal(false);
+      }, 10000); // Close the modal after 10 seconds
+      return () => clearTimeout(timeout);
+    }
+  }, [modalStep, setShowModal]);
+
   return (
     <div className="container">
       <div className="header">
         <h1>Plex Movie Finder</h1>
       </div>
       <div className="search-form">
-        <input type="text" value={searchTerm} onChange={handleInputChange} placeholder="Movie title..." />
+        <input 
+        type="text" 
+        value={searchTerm} 
+        onChange={handleInputChange} 
+        placeholder="Movie title..." 
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            handleSubmit(event);
+          }
+        }}
+        />
         <button type="submit" onClick={handleSubmit}>Search</button>
       </div>
+      {isLoading && (
+        <div className="loading">
+          <h2>Loading...</h2>
+        </div>
+      )}
       <ul className="movie-list">
         {searchResults.map((movie, index) => (
           <li key={index}>
-            <img src={movie.image} alt={movie.title} onClick={handleImageClick} />
+            <img 
+            src={movie.image} 
+            alt={movie.title} 
+            onClick={handleImageClick} 
+            className='movie-image'
+            />
             <h2>{movie.title}</h2>
             <p>{movie.year}</p>
           </li>
@@ -87,14 +141,31 @@ function App() {
       {showModal && (
         <div className="modal">
           <div className="modal-content">
-            <h2>Confirm Movie Addition</h2>
-            <p>Movie already on Plex?</p>
-            <input type="checkbox" checked={confirmed} onChange={handleConfirmedChange} />
-            <p>Yes</p>
-            <p>No</p>
-            <p>Password:</p>
-            <input type="password" value={password} onChange={handlePasswordChange} />
-            <button type="submit" onClick={handleSubmitPassword}>Add to Plex</button>
+          <button className="close-button" onClick={handleModalClose}>
+              Cancel
+            </button>
+            {modalStep === 1 && (
+              <>
+                <h2>Confirm Movie Addition</h2>
+                <p>Movie already on Plex?</p>
+                <div className="options">
+                  <button onClick={() => handleConfirm(true)}>Yes</button>
+                  <button onClick={() => handleConfirm(false)}>No</button>
+                </div>
+              </>
+            )}
+            {modalStep === 3 && (
+              <>
+                <p>Password:</p>
+                <input type="password" value={password} onChange={handlePasswordChange} />
+                <button type="submit" onClick={handleSubmitPassword}>
+                  Add to Plex
+                </button>
+              </>
+            )}
+            {modalStep === 2 && (
+              <p>Cool. Go check before you download the movie.</p>
+            )}
           </div>
         </div>
       )}
