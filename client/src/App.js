@@ -100,6 +100,27 @@ function App() {
     }
   }, [modalStep, setShowModal]);
 
+  const movieRequest = () => {
+    const form = document.getElementById('optionForm');
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const option = document.getElementById('option').value;
+    
+        fetch('http://jagonz.duckdns.org:80/process_option', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ option: option })
+        })
+        .then(response => response.json())   
+    
+        .catch(error => console.error('Error:', error));
+    });
+  }
+
+
   return (
     <div className="container">
       <div className="header">
@@ -147,7 +168,7 @@ function App() {
             {modalStep === 1 && (
               <>
                 <h2>Confirm Movie Addition</h2>
-                <p>Movie already on Plex?</p>
+                <p>Did you check if the moive is already on Plex?</p>
                 <div className="options">
                   <button onClick={() => handleConfirm(true)}>Yes</button>
                   <button onClick={() => handleConfirm(false)}>No</button>
@@ -164,7 +185,7 @@ function App() {
               </>
             )}
             {modalStep === 2 && (
-              <p>Cool. Go check before you download the movie.</p>
+              <p>Go check. If it's not come back.</p>
             )}
           </div>
         </div>
