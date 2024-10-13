@@ -58,7 +58,7 @@ function App() {
 
   const handleSubmitPassword = (event) => {
     event.preventDefault();
-    if (password === 'your_password_here') {
+    if (password === 'password') {
       console.log('Success!');
       setShowModal(false);
     } else {
