@@ -175,7 +175,7 @@ function App() {
                 </div>
               </>
             )}
-            {modalStep === 3 && (
+            {modalStep === 2 && (
               <>
                 <p>Password:</p>
                 <input type="password" value={password} onChange={handlePasswordChange} />
@@ -184,7 +184,7 @@ function App() {
                 </button>
               </>
             )}
-            {modalStep === 2 && (
+            {modalStep === 3 && (
               <p>Go check. If it's not come back.</p>
             )}
           </div>
