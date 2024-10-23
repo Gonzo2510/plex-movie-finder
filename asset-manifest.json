@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/plex-movie-finder/static/css/main.0583ea4d.css",
-    "main.js": "/plex-movie-finder/static/js/main.d3c18c24.js",
+    "main.css": "/plex-movie-finder/static/css/main.5954b5fb.css",
+    "main.js": "/plex-movie-finder/static/js/main.5d2d6db4.js",
     "index.html": "/plex-movie-finder/index.html",
-    "main.0583ea4d.css.map": "/plex-movie-finder/static/css/main.0583ea4d.css.map",
-    "main.d3c18c24.js.map": "/plex-movie-finder/static/js/main.d3c18c24.js.map"
+    "main.5954b5fb.css.map": "/plex-movie-finder/static/css/main.5954b5fb.css.map",
+    "main.5d2d6db4.js.map": "/plex-movie-finder/static/js/main.5d2d6db4.js.map"
   },
   "entrypoints": [
-    "static/css/main.0583ea4d.css",
-    "static/js/main.d3c18c24.js"
+    "static/css/main.5954b5fb.css",
+    "static/js/main.5d2d6db4.js"
   ]
 }
