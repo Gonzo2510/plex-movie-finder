@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { load } from 'cheerio';
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); 
-  const [password, setPassword] = useState('');
-  const [confirmed, setConfirmed] = useState(false);
-  const [modalStep, setModalStep] = useState(1)
+  const [isLoading, setIsLoading] = useState(false);
+  const [paginationLinks, setPaginationLinks] = useState([]); // Store pagination links
+  const [currentPage, setCurrentPage] = useState(1); // Track current page
 
   const handleInputChange = (event) => {
     setSearchTerm(event.target.value);
@@ -18,108 +16,59 @@ function App() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    await searchYts(searchTerm);
-    setIsLoading(false); 
+    await searchYts(searchTerm, 1); // Start search on the first page
+    setIsLoading(false);
   };
 
-  const searchYts = async (searchTerm) => {
+  const searchYts = async (searchTerm, page) => {
     const params = {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
       },
     };
     try {
-      const url = `https://yts.mx/browse-movies/${searchTerm}/all/all/0/latest/0/all`;
+      const url = `https://yts.mx/browse-movies/${searchTerm}/all/all/0/latest/0/all?page=${page}`;
       const response = await axios.get(url, params);
       const $ = load(response.data);
       const movies = [];
 
+      // Scrape movie data
       $('.browse-movie-wrap').each((index, element) => {
         const title = $(element).find('.browse-movie-title').text();
         const year = $(element).find('.browse-movie-year').text();
         const image = $(element).find('img').attr('src');
+        const link = $(element).find('a').attr('href');
 
-        movies.push({ title, year, image });
+        movies.push({ title, year, image, link });
+      });
+
+      // Scrape pagination links, filtering for only unique page numbers
+      const pages = [];
+      const seenPages = new Set(); // To track seen pages and avoid duplicates
+      $('.tsc_pagination li').each((index, element) => {
+        const pageNumber = $(element).find('a').text();
+        const pageLink = $(element).find('a').attr('href');
+        // Add only valid numeric page links, avoid 'Next' and 'Previous'
+        if (pageLink && /^\d+$/.test(pageNumber) && !seenPages.has(pageNumber)) {
+          pages.push({ pageNumber, pageLink });
+          seenPages.add(pageNumber); // Add to seen pages to avoid duplicates
+        }
       });
 
       setSearchResults(movies);
+      setPaginationLinks(pages); // Store pagination links
     } catch (error) {
       console.error(error);
     }
   };
 
-  const handleImageClick = () => {
-    setShowModal(true);
+  // Handle pagination click
+  const handlePageClick = async (page) => {
+    setIsLoading(true);
+    await searchYts(searchTerm, page);
+    setIsLoading(false);
+    setCurrentPage(page);
   };
-
-  const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
-  };
-
-  const handleConfirmedChange = (event) => {
-    setConfirmed(event.target.checked);
-  };
-
-  const handleSubmitPassword = (event) => {
-    event.preventDefault();
-    if (password === 'password') {
-      console.log('Success!');
-      setShowModal(false);
-    } else {
-      console.log('Incorrect password');
-    }
-  };
-
-  const handleModalClose = () => {
-    setModalStep(1); // Reset the modal step to the initial state
-    setPassword(''); // Clear the password field
-    setConfirmed(false); // Reset the confirmed state
-    setShowModal(false);
-  };
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Escape') {
-      handleModalClose();
-    }
-  };
-
-  const handleConfirm = (isMovieOnPlex) => {
-    if (isMovieOnPlex) {
-      setModalStep(2); // Proceed to the password prompt
-    } else {
-      setModalStep(3); // Show the "Cool. Go check..." message and close the modal
-    }
-  };
-
-  useEffect(() => {
-    if (modalStep === 3) {
-      const timeout = setTimeout(() => {
-        setShowModal(false);
-      }, 10000); // Close the modal after 10 seconds
-      return () => clearTimeout(timeout);
-    }
-  }, [modalStep, setShowModal]);
-
-  const movieRequest = () => {
-    const form = document.getElementById('optionForm');
-
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const option = document.getElementById('option').value;
-    
-        fetch('http://jagonz.duckdns.org:80/process_option', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ option: option })
-        })
-        .then(response => response.json())   
-    
-        .catch(error => console.error('Error:', error));
-    });
-  }
-
 
   return (
     <div className="container">
@@ -127,18 +76,20 @@ function App() {
         <h1>Plex Movie Finder</h1>
       </div>
       <div className="search-form">
-        <input 
-        type="text" 
-        value={searchTerm} 
-        onChange={handleInputChange} 
-        placeholder="Movie title..." 
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            handleSubmit(event);
-          }
-        }}
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleInputChange}
+          placeholder="Movie title..."
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              handleSubmit(event);
+            }
+          }}
         />
-        <button type="submit" onClick={handleSubmit}>Search</button>
+        <button type="submit" onClick={handleSubmit}>
+          Search
+        </button>
       </div>
       {isLoading && (
         <div className="loading">
@@ -148,50 +99,34 @@ function App() {
       <ul className="movie-list">
         {searchResults.map((movie, index) => (
           <li key={index}>
-            <img 
-            src={movie.image} 
-            alt={movie.title} 
-            onClick={handleImageClick} 
-            className='movie-image'
+            <img
+              src={movie.image}
+              alt={movie.title}
+              className="movie-image"
             />
             <h2>{movie.title}</h2>
             <p>{movie.year}</p>
           </li>
         ))}
       </ul>
-      {showModal && (
-        <div className="modal">
-          <div className="modal-content">
-          <button className="close-button" onClick={handleModalClose}>
-              Cancel
+
+      {/* Render pagination */}
+      {paginationLinks.length > 1 && (  // Check if more than one page link is available
+        <div className="pagination-dock" style={{ position: 'fixed', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px' }}>
+          {paginationLinks.map((page, index) => (
+            <button
+              key={index}
+              onClick={() => handlePageClick(page.pageNumber)}
+              disabled={currentPage === Number(page.pageNumber)}
+            >
+              {page.pageNumber}
             </button>
-            {modalStep === 1 && (
-              <>
-                <h2>Confirm Movie Addition</h2>
-                <p>Did you check if the moive is already on Plex?</p>
-                <div className="options">
-                  <button onClick={() => handleConfirm(true)}>Yes</button>
-                  <button onClick={() => handleConfirm(false)}>No</button>
-                </div>
-              </>
-            )}
-            {modalStep === 2 && (
-              <>
-                <p>Password:</p>
-                <input type="password" value={password} onChange={handlePasswordChange} />
-                <button type="submit" onClick={handleSubmitPassword}>
-                  Add to Plex
-                </button>
-              </>
-            )}
-            {modalStep === 3 && (
-              <p>Go check. If it's not come back.</p>
-            )}
-          </div>
+          ))}
         </div>
       )}
+
     </div>
   );
-};
+}
 
 export default App;

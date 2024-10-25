@@ -161,3 +161,33 @@ body {
 .loading {
   color: white;
 }
+
+.pagination-dock {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px; /* Increased spacing between buttons */
+}
+
+.pagination-dock button {
+  padding: 10px 15px; /* Larger button size */
+  font-size: 1.2rem;  /* Slightly larger font size */
+  font-weight: bold;  /* Bold numbers */
+  background-color: #007BFF; /* Blue background */
+  color: white; /* White text */
+  border: none; /* No border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
+
+.pagination-dock button:hover {
+  background-color: #007BFF; /* Darker blue on hover */
+}
+
+.pagination-dock button:disabled {
+  background-color: #CCCCCC; /* Grey color for disabled */
+  cursor: not-allowed;
+}
