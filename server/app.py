@@ -1,6 +1,6 @@
 # app.py
 from flask import Flask, request, jsonify
-from qbittorrent import Client
+from qbittorrentapi import Client
 import os
 
 app = Flask(__name__)
@@ -53,6 +53,10 @@ def handle_download():
         print(f"Error adding torrent: {e}")
         return jsonify({'status': 'error', 'message': f'Failed to add torrent to qBittorrent: {e}'}), 500
 
+@app.route('/')
+def index():
+    # Return a simple JSX-like string
+    return '<div><h1>Server</h1></div>'
 
 if __name__ == '__main__':
     # You might want to get these from environment variables or a config file
@@ -63,4 +67,4 @@ if __name__ == '__main__':
     # export QB_DOWNLOAD_LOCATION="/path/to/your/plex/movies"
     # export QB_HOST="192.168.1.100" # If qbittorrent is on another machine
 
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5001, debug=True)
