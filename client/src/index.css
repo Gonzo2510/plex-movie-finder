@@ -207,3 +207,52 @@ body {
   box-sizing: border-box;
   transition: font-size 0.2s;
 }
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2em;
+  border-radius: 8px;
+  z-index: 1000;
+  min-width: 250px;
+  text-align: center;
+}
+.quality-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.quality-modal-content {
+  background: white;
+  padding: 2em;
+  border-radius: 8px;
+  min-width: 250px;
+  text-align: center;
+}
+.quality-modal-content ul li button {
+  transition: background 0.2s, border 0.2s;
+}
+.loading-dots {
+  font-size: 1.5em;
+  letter-spacing: 0.1em;
+}
+.loading-dots .dot {
+  animation: blink 1s infinite alternate;
+}
+.loading-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+  0% { opacity: 0.2; }
+  100% { opacity: 1; }
+}

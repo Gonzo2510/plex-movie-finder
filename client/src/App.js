@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { load } from 'cheerio';
 
@@ -8,6 +8,16 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [nextPageLink, setNextPageLink] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [modalState, setModalState] = useState({
+    open: false,
+    loading: false,
+    links: [],
+    error: null,
+    step: null, // 'confirm' or 'quality'
+    movie: null // store selected movie for modal
+  });
+  const [selectedMovieUrl, setSelectedMovieUrl] = useState(null);
+  const [selectedQualityIndex, setSelectedQualityIndex] = useState(0);
 
   const movieListRef = useRef(null);
 
@@ -108,42 +118,149 @@ function App() {
   };
 
   const handleMovieClick = (movie) => {
-    setSelectedMovie(movie);
+    setModalState({
+      open: true,
+      loading: false,
+      links: [],
+      error: null,
+      step: 'confirm',
+      movie
+    });
   };
 
-const handleDownload = async () => {
-    if (!selectedMovie || !selectedMovie.link) {
-      alert('No movie selected or movie link missing!');
-      return;
-    }
+  // Helper to sort links by your desired hierarchy
+  function sortLinks(links) {
+    const priorities = [
+      { regex: /1080.*web.*265/i, score: 1 },
+      { regex: /1080/i, score: 2 },
+      { regex: /720.*web.*265/i, score: 3 },
+      { regex: /720/i, score: 4 }
+    ];
+    return [...links].sort((a, b) => {
+      const getScore = (text) => {
+        for (const p of priorities) {
+          if (p.regex.test(text)) return p.score;
+        }
+        return 99;
+      };
+      return getScore(a.text) - getScore(b.text);
+    });
+  }
 
-    console.log('Initiating download for:', selectedMovie.title);
-    console.log('Sending YTS URL to backend:', selectedMovie.link);
-
-    const backendUrl = 'http://localhost:5000/download';
+  const handleDownloadClick = async (moviePageUrl) => {
+    setModalState(prev => ({
+      ...prev,
+      loading: true,
+      links: [],
+      error: null,
+      step: 'quality'
+    }));
+    setSelectedMovieUrl(moviePageUrl);
 
     try {
-      const response = await axios.post(backendUrl, {
-        yts_url: selectedMovie.link // Send the YTS movie page URL
-      });
+      // Fetch the movie page HTML
+      const res = await fetch(moviePageUrl);
+      const html = await res.text();
 
-      if (response.status === 200) {
-        alert(`Download initiated for ${selectedMovie.title}!`);
-        console.log('Backend response:', response.data);
-        closeModal();
-      } else {
-        alert(`Failed to initiate download: ${response.data.message || 'Unknown error'}`);
-        console.error('Backend error:', response.data);
+      // Parse HTML and extract links, excluding subtitles
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const pTag = doc.querySelector('#movie-info > div.bottom-info > p');
+      let links = [];
+      if (pTag) {
+        links = Array.from(pTag.querySelectorAll('a'))
+          .filter(a => !a.textContent.toLowerCase().includes('subtitle'))
+          .map(a => ({
+            href: a.href,
+            text: a.textContent
+          }));
+        links = sortLinks(links);
       }
-    } catch (error) {
-      console.error('Error communicating with backend:', error);
-      alert('Could not connect to the download server or an error occurred. Check console for details.');
+
+      // Find the highest quality available
+      let defaultIndex = 0;
+      if (links.length > 0) {
+        defaultIndex = 0; // Already sorted, so first is best
+      }
+
+      setSelectedQualityIndex(defaultIndex);
+
+      setModalState(prev => ({
+        ...prev,
+        loading: false,
+        links,
+        error: null
+      }));
+    } catch (err) {
+      setModalState(prev => ({
+        ...prev,
+        loading: false,
+        links: [],
+        error: 'Failed to load links.'
+      }));
+    }
+  };
+
+  // Called when user selects a link to actually download
+  const handleSelectLink = async (linkUrl) => {
+    setModalState(prev => ({
+      ...prev,
+      loading: true,
+      error: null
+    }));
+    try {
+      // Send the selected link to the backend
+      await fetch('http://localhost:5000/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: linkUrl })
+      });
+      setModalState({
+        open: false,
+        loading: false,
+        links: [],
+        error: null,
+        step: null,
+        movie: null
+      });
+      // Optionally show a success message
+    } catch (err) {
+      setModalState(prev => ({
+        ...prev,
+        loading: false,
+        error: 'Failed to send download request.'
+      }));
     }
   };
 
   const closeModal = () => {
+    setModalState({
+      open: false,
+      loading: false,
+      links: [],
+      error: null,
+      step: null,
+      movie: null
+    });
     setSelectedMovie(null);
   };
+
+  // Animate arrow sliding back and forth
+  const [arrowOffset, setArrowOffset] = useState(0);
+  useEffect(() => {
+    let direction = 1;
+    let frame;
+    function animate() {
+      setArrowOffset(prev => {
+        if (prev >= 10) direction = -1;
+        if (prev <= 0) direction = 1;
+        return prev + direction * 0.45; // <-- Decrease this value to slow down the arrow
+      });
+      frame = requestAnimationFrame(animate);
+    }
+    animate();
+    return () => cancelAnimationFrame(frame);
+  }, [modalState.open, modalState.step]);
 
   return (
     <div className="container">
@@ -189,15 +306,95 @@ const handleDownload = async () => {
         </div>
       )}
 
-      {selectedMovie && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div className="modal-content" style={{ background: 'white', padding: '20px', border: '1px solid #ccc', boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)', borderRadius: '5px', textAlign: 'center' }}>
-            <h2>{selectedMovie.title}</h2>
-            <p>Would you like to add this movie to Plex?</p>
-            <div style={{ marginTop: '20px' }}>
-              <button onClick={handleDownload} style={{ marginRight: '10px' }}>Yes</button>
-              <button onClick={closeModal}>No</button>
-            </div>
+      {modalState.open && (
+        <div className="quality-modal">
+          <div className="quality-modal-content" style={{ position: 'relative' }}>
+            {/* Close (X) button */}
+            <button
+              className="quality-modal-close"
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '1.5em',
+                cursor: 'pointer',
+                color: '#888',
+                zIndex: 1
+              }}
+              onClick={closeModal}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            {modalState.step === 'confirm' && modalState.movie && (
+              <>
+                <h2>{modalState.movie.title}</h2>
+                <p>Would you like to add this movie to Plex?</p>
+                <div style={{ marginTop: '20px' }}>
+                  <button
+                    onClick={() => handleDownloadClick(modalState.movie.link)}
+                    style={{ marginRight: '10px' }}
+                  >
+                    Yes
+                  </button>
+                  <button onClick={closeModal}>No</button>
+                </div>
+              </>
+            )}
+            {modalState.step === 'quality' && (
+              modalState.loading ? (
+                <div className="loading-dots" style={{ color: 'black', fontSize: '24px' }}>
+                  Loading<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span>
+                </div>
+              ) : modalState.error ? (
+                <div style={{ color: 'red' }}>{modalState.error}</div>
+              ) : (
+                <>
+                  <div>Select a quality to download:</div>
+                  <ul style={{ listStyleType: 'none', padding: 0 }}>
+                    {modalState.links.map((link, idx) => (
+                      <li
+                        key={link.href}
+                        style={{
+                          margin: '10px 0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          fontWeight: idx === selectedQualityIndex ? 'bold' : 'normal'
+                        }}
+                        onClick={() => setSelectedQualityIndex(idx)}
+                      >
+                        {/* Animated Arrow */}
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            width: '24px',
+                            marginRight: '8px',
+                            transform: `translateX(${idx === selectedQualityIndex ? arrowOffset : 0}px)`,
+                            transition: idx === selectedQualityIndex ? 'none' : 'transform 0.5s'
+                          }}
+                        >
+                          {idx === selectedQualityIndex ? '➔' : ''}
+                        </span>
+                        <button
+                          onClick={() => handleSelectLink(link.href)}
+                          style={{
+                            padding: '10px 20px',
+                            fontSize: '16px',
+                            background: idx === selectedQualityIndex ? '#e0ffe0' : '',
+                            border: idx === selectedQualityIndex ? '2px solid #2b923c' : '',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {link.text}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )
+            )}
           </div>
         </div>
       )}
