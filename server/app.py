@@ -1,33 +1,63 @@
 # app.py
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from qbittorrentapi import Client
 import os
+import subprocess
+import time
 
 app = Flask(__name__)
+CORS(app)
 
 # qBittorrent configuration
 QB_HOST = os.environ.get('QB_HOST', 'localhost')
 QB_PORT = os.environ.get('QB_PORT', '8080')
 QB_USERNAME = os.environ.get('QB_USERNAME', 'Gonzo2510')
 QB_PASSWORD = os.environ.get('QB_PASSWORD', 'Password1!')
-QB_DOWNLOAD_LOCATION = os.environ.get('QB_DOWNLOAD_LOCATION', 'D:\Movies 3tb')
+QB_DOWNLOAD_LOCATION = os.environ.get('QB_DOWNLOAD_LOCATION', r'D:\Movies 3tb')
 
 # Initialize qBittorrent client globally or within the request handler
 # It's better to initialize it within the request handler for robustness,
 # but for simplicity, we'll do it here. You might need error handling
 # if the connection fails.
+def launch_qbittorrent():
+    """
+    Attempt to launch qBittorrent (desktop client with Web UI enabled).
+    Adjust the executable path as needed for your OS.
+    """
+    try:
+        # Windows example path; adjust if needed
+        qb_path = r"C:\Program Files\qBittorrent\qbittorrent.exe"
+        subprocess.Popen([qb_path])
+        print("Attempted to launch qBittorrent.")
+        # Wait a few seconds for Web UI to start
+        time.sleep(5)
+    except Exception as e:
+        print(f"Failed to launch qBittorrent: {e}")
+
 try:
     qb = Client(
         host=f'http://{QB_HOST}:{QB_PORT}',
         username=QB_USERNAME,
         password=QB_PASSWORD
     )
-    # Test connection
     qb.auth_log_in()
     print("Successfully connected to qBittorrent Web UI.")
 except Exception as e:
     print(f"Failed to connect to qBittorrent: {e}")
-    qb = None # Set qb to None if connection fails
+    launch_qbittorrent()
+    # Try to connect again after launching
+    try:
+        qb = Client(
+            host=f'http://{QB_HOST}:{QB_PORT}',
+            username=QB_USERNAME,
+            password=QB_PASSWORD
+        )
+        qb.auth_log_in()
+        print("Successfully connected to qBittorrent Web UI after launching.")
+    except Exception as e2:
+        print(f"Still failed to connect to qBittorrent: {e2}")
+        qb = None # Set qb to None if connection fails
 
 @app.route('/download', methods=['POST'])
 def handle_download():
@@ -67,4 +97,4 @@ if __name__ == '__main__':
     # export QB_DOWNLOAD_LOCATION="/path/to/your/plex/movies"
     # export QB_HOST="192.168.1.100" # If qbittorrent is on another machine
 
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
