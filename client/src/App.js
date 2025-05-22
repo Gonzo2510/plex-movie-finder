@@ -28,11 +28,7 @@ function App() {
 
     try {
       setIsLoading(true);
-      const params = {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-        },
-      };
+      const params = {};
 
       const encodedTerm = encodeURIComponent(term.trim());
       const url = `https://yts.mx/browse-movies/${encodedTerm}/all/all/0/latest/0/all`;
@@ -115,9 +111,34 @@ function App() {
     setSelectedMovie(movie);
   };
 
-  const handleDownload = () => {
-    // TODO: Implement Plex integration/add to Plex functionality here
-    console.log('Add to Plex clicked for:', selectedMovie.title);
+const handleDownload = async () => {
+    if (!selectedMovie || !selectedMovie.link) {
+      alert('No movie selected or movie link missing!');
+      return;
+    }
+
+    console.log('Initiating download for:', selectedMovie.title);
+    console.log('Sending YTS URL to backend:', selectedMovie.link);
+
+    const backendUrl = 'http://localhost:5000/download';
+
+    try {
+      const response = await axios.post(backendUrl, {
+        yts_url: selectedMovie.link // Send the YTS movie page URL
+      });
+
+      if (response.status === 200) {
+        alert(`Download initiated for ${selectedMovie.title}!`);
+        console.log('Backend response:', response.data);
+        closeModal();
+      } else {
+        alert(`Failed to initiate download: ${response.data.message || 'Unknown error'}`);
+        console.error('Backend error:', response.data);
+      }
+    } catch (error) {
+      console.error('Error communicating with backend:', error);
+      alert('Could not connect to the download server or an error occurred. Check console for details.');
+    }
   };
 
   const closeModal = () => {
