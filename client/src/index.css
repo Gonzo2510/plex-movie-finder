@@ -191,3 +191,19 @@ body {
   background-color: #CCCCCC; /* Grey color for disabled */
   cursor: not-allowed;
 }
+
+.search-button {
+  background: green;
+  color: white;
+  padding: 0.5em 1.5em;
+  border: none;
+  border-radius: 4px;
+  font-size: 2vw;
+  min-width: 70px;
+  min-height: 35px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  transition: font-size 0.2s;
+}
