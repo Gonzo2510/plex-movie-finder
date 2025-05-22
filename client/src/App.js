@@ -162,9 +162,7 @@ const handleDownload = async () => {
             }
           }}
         />
-        <button type="submit" onClick={handleSubmit}>
-          Search
-        </button>
+        <button className="search-button">Search</button>
       </div>
       {isLoading && (
         <div className="loading" style={{ textAlign: 'center' }}>
