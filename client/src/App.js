@@ -128,7 +128,7 @@ function App() {
     });
   };
 
-  // Helper to sort links by your desired hierarchy
+  // Helper to sort links by hierarchy
   function sortLinks(links) {
     const priorities = [
       { regex: /1080.*web.*265/i, score: 1 },
@@ -245,7 +245,7 @@ function App() {
     setSelectedMovie(null);
   };
 
-  // Animate arrow sliding back and forth
+  // Animate arrow
   const [arrowOffset, setArrowOffset] = useState(0);
   useEffect(() => {
     let direction = 1;
@@ -254,7 +254,7 @@ function App() {
       setArrowOffset(prev => {
         if (prev >= 10) direction = -1;
         if (prev <= 0) direction = 1;
-        return prev + direction * 0.45; // <-- Decrease this value to slow down the arrow
+        return prev + direction * 0.45; // arrow speed
       });
       frame = requestAnimationFrame(animate);
     }
