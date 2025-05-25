@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { load } from 'cheerio';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -210,7 +212,7 @@ function App() {
     }));
     try {
       // Send the selected link to the backend
-      await fetch('http://localhost:5000/download', {
+      await fetch(`${API_BASE_URL}/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: linkUrl })
