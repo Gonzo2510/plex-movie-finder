@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/plex-movie-finder/static/css/main.3a7e77df.css",
+    "main.js": "/plex-movie-finder/static/js/main.f8b8beae.js",
+    "index.html": "/plex-movie-finder/index.html",
+    "main.3a7e77df.css.map": "/plex-movie-finder/static/css/main.3a7e77df.css.map",
+    "main.f8b8beae.js.map": "/plex-movie-finder/static/js/main.f8b8beae.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.3a7e77df.css",
+    "static/js/main.f8b8beae.js"
+  ]
+}
